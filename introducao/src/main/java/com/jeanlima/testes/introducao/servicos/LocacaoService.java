@@ -10,11 +10,28 @@ import org.junit.Test;
 import com.jeanlima.testes.introducao.entidades.Filme;
 import com.jeanlima.testes.introducao.entidades.Locacao;
 import com.jeanlima.testes.introducao.entidades.Usuario;
+import com.jeanlima.testes.introducao.exceptions.FilmeSemEstoqueException;
+import com.jeanlima.testes.introducao.exceptions.LocadoraException;
 import com.jeanlima.testes.introducao.utils.DataUtils;
 
 public class LocacaoService {
 	
-	public Locacao alugarFilme(Usuario usuario, Filme filme) {
+	//FilmeSemEstoqueException, LocadoraException
+	//public Locacao alugarFilme(Usuario usuario, Filme filme) throws Exception {
+	public Locacao alugarFilme(Usuario usuario, Filme filme) throws FilmeSemEstoqueException, LocadoraException {	
+				
+		/* ## PARTE 3 ### */
+		if(usuario == null) {
+			throw new LocadoraException("Usuario vazio");
+		}
+		if(filme == null) {
+			throw new LocadoraException("Filme vazio");
+		}
+		
+		if(filme.getEstoque() == 0) {
+			throw new FilmeSemEstoqueException();
+		}
+		
 		Locacao locacao = new Locacao();
 		locacao.setFilme(filme);
 		locacao.setUsuario(usuario);
@@ -32,24 +49,5 @@ public class LocacaoService {
 		return locacao;
 	}
 	
-	@Test
-	public void teste() {
-		//cenario
-		LocacaoService service = new LocacaoService();
-		Usuario usuario = new Usuario("Usuario 1");
-		Filme filme = new Filme("Filme 1", 2, 5.0);
-		
-		//acao
-		Locacao locacao = service.alugarFilme(usuario, filme);
-		
-		/* verificacao
-		System.out.println(locacao.getValor() == 5.0);
-		System.out.println(DataUtils.isMesmaData(locacao.getDataLocacao(), new Date()));
-		System.out.println(DataUtils.isMesmaData(locacao.getDataRetorno(), DataUtils.obterDataComDiferencaDias(1)));
-		*/
-		Assert.assertTrue(locacao.getValor() == 5.0);
-		Assert.assertTrue(DataUtils.isMesmaData(locacao.getDataLocacao(), new Date()));
-		Assert.assertTrue(DataUtils.isMesmaData(locacao.getDataRetorno(), DataUtils.obterDataComDiferencaDias(1)));
-		
-	}
+ 
 }
