@@ -24,12 +24,19 @@ public class AppTest
 		Filme filme = new Filme("Filme 1", 2, 5.0);
 		
 		//acao
-		Locacao locacao = service.alugarFilme(usuario, filme);
+		Locacao locacao;
+		try {
+			locacao = service.alugarFilme(usuario, filme);
+			//verificacao
+			Assert.assertTrue(locacao.getValor() == 4.0);
+			Assert.assertTrue(DataUtils.isMesmaData(locacao.getDataLocacao(), new Date()));
+			Assert.assertTrue(DataUtils.isMesmaData(locacao.getDataRetorno(), DataUtils.obterDataComDiferencaDias(1)));
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
-		//verificacao
-		Assert.assertTrue(locacao.getValor() == 4.0);
-		Assert.assertTrue(DataUtils.isMesmaData(locacao.getDataLocacao(), new Date()));
-		Assert.assertTrue(DataUtils.isMesmaData(locacao.getDataRetorno(), DataUtils.obterDataComDiferencaDias(1)));
+		
 	}
    
 }
