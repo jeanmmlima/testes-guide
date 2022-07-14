@@ -13,7 +13,11 @@ import java.util.Date;
 
 
 import org.hamcrest.MatcherAssert;
+import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ErrorCollector;
@@ -28,46 +32,59 @@ import com.jeanlima.testes.introducao.utils.DataUtils;
 
 public class LocacaoServiceTest {
 	
+	//PARTE 2 - jUnit não garante que a ordem de execução é a de implementação dos testes!!!
+	/* 
+	 * USANDO o FIRST sem PROBLEMAS
+	 * MAs se os testes dependerem um do outro aí problema
+	 * 
+	 * */
+	
+	//desafio contador
+	
+	//private static int contador = 0; util para passar valores entre um teste e outro caso necessário
+	
 	@Rule 
 	public ErrorCollector error = new ErrorCollector();
 	
 	@Rule
 	public ExpectedException exception = ExpectedException.none();
 	
-	/* ### PARTE 1 -  VAI GERAR FALHA: teste feito mas alguma condição que era esperada NÃO é atendida
-	@Test
-	public void testeLocacao() {
+	//métodos usados para configurações genericas aos métodos de teste
+	
+	private LocacaoService service;
+	
+	@Before
+	public void setup() {
+		//System.out.println("before");//cenario
+		this.service = new LocacaoService();
+		//contador++;
+		//System.out.println(contador);
 		
+	}
+	
+	@After
+	public void tearDown() {
+		//System.out.println("after");
+	}
+	
+	//apenas uma vez antes da classe ser instanciada e feinalizada
+	
+	@BeforeClass
+	public static void setupClass() {
+		//System.out.println("before CLASS");//cenario
+		//this.service = new LocacaoService();
 		
-		//cenario
-		LocacaoService service = new LocacaoService();
-		Usuario usuario = new Usuario("Usuario 1");
-		Filme filme = new Filme("Filme 1", 0, 5.0);
-		
-		//acao
-		Locacao locacao;
-		try {
-			locacao = service.alugarFilme(usuario, filme);
-			error.checkThat(locacao.getValor(), is(5.0));
-			error.checkThat(locacao.getValor(), is(equalTo(5.0)));
-			error.checkThat(DataUtils.isMesmaData(locacao.getDataLocacao(), new Date()), is(true));
-			error.checkThat(DataUtils.isMesmaData(locacao.getDataRetorno(), DataUtils.obterDataComDiferencaDias(1)), is(true));
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			
-			//falha o teste se lançar a exceção
-			Assert.fail("Não deveria lancar excecao!");
-		}
-		
-	} */
+	}
+	
+	@AfterClass
+	public static void tearDownClass() {
+		//System.out.println("after CLASS");
+	}
+	
 	
 	// PARTE 2 - vai gerar ERRO! Problema acontece durante a execução do teste e o mesmo não é concluido
 	@Test
 	public void testeLocacao() throws Exception {
-		
-		//cenario
-		LocacaoService service = new LocacaoService();
 		Usuario usuario = new Usuario("Usuario 1");
 		Filme filme = new Filme("Filme 1", 2, 5.0);
 		
@@ -87,20 +104,20 @@ public class LocacaoServiceTest {
 	@Test(expected = Exception.class)  //informo ao teste que existe uma exceção esperada
 	public void testLocacao_filmeSemEstoque() throws Exception{
 		//cenario
-		LocacaoService service = new LocacaoService();
+		
 		Usuario usuario = new Usuario("Usuario 1");
 		Filme filme = new Filme("Filme 2", 0, 4.0);
 		
 		//acao
 		service.alugarFilme(usuario, filme);
 	}
-	
+	/*
 	@Test
 	public void testLocacao_filmeSemEstoque_2() {
 		//cenario
-		LocacaoService service = new LocacaoService();
+		
 		Usuario usuario = new Usuario("Usuario 1");
-		Filme filme = new Filme("Filme 2", 2, 4.0);
+		Filme filme = new Filme("Filme 2", 0, 4.0);
 		
 		//acao
 		try {
@@ -110,12 +127,14 @@ public class LocacaoServiceTest {
 		} catch (Exception e) {
 			assertThat(e.getMessage(), is("Filme sem estoque"));
 		}
-	}
+	}*/
+	
+	/*
 	
 	@Test
 	public void testLocacao_filmeSemEstoque3() throws Exception{
 		//cenario
-		LocacaoService service = new LocacaoService();
+		
 		Usuario usuario = new Usuario("Usuario 1");
 		Filme filme = new Filme("Filme 2", 0, 4.0);
 		
@@ -123,11 +142,12 @@ public class LocacaoServiceTest {
 		assertThat(e.getMessage(), containsString("Filme sem estoque"));
 		
 	}
+	*/
 	
 	@Test(expected = FilmeSemEstoqueException.class)  //informo ao teste que existe uma exceção esperada
 	public void testLocacao_filmeSemEstoque4() throws Exception{
 		//cenario
-		LocacaoService service = new LocacaoService();
+		
 		Usuario usuario = new Usuario("Usuario 1");
 		Filme filme = new Filme("Filme 2", 0, 4.0);
 		
@@ -138,7 +158,7 @@ public class LocacaoServiceTest {
 	@Test
 	public void testLocacao_usuarioVazio() throws FilmeSemEstoqueException{
 		//cenario
-		LocacaoService service = new LocacaoService();
+		
 		Filme filme = new Filme("Filme 2", 1, 4.0);
 		
 		//acao
