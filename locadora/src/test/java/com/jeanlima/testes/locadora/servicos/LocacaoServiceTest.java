@@ -15,6 +15,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+import org.hamcrest.MatcherAssert;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Before;
@@ -29,6 +30,8 @@ import com.jeanlima.testes.locadora.entidades.Locacao;
 import com.jeanlima.testes.locadora.entidades.Usuario;
 import com.jeanlima.testes.locadora.exceptions.FilmeSemEstoqueException;
 import com.jeanlima.testes.locadora.exceptions.LocadoraException;
+import com.jeanlima.testes.locadora.matchers.DiaSemanaMatcher;
+import com.jeanlima.testes.locadora.matchers.MathersProprios;
 import com.jeanlima.testes.locadora.utils.DataUtils;
 
 
@@ -65,6 +68,13 @@ public class LocacaoServiceTest {
 			error.checkThat(locacao.getValor(), is(equalTo(5.0)));
 			error.checkThat(isMesmaData(locacao.getDataLocacao(), new Date()), is(true));
 			error.checkThat(isMesmaData(locacao.getDataRetorno(), obterDataComDiferencaDias(1)), is(true));
+
+			/*
+			 * 
+			 * Desafio - Mathers próprios
+			 * error.checkThat(isMesmaData(locacao.getDataLocacao(), ehHoje());
+			 * error.checkThat(isMesmaData(locacao.getDataRetorno(), ehHojeComDiferencaDias(1));
+			 */
 		}
 		
 		@Test(expected = FilmeSemEstoqueException.class)
@@ -180,7 +190,13 @@ public class LocacaoServiceTest {
 			
 			//verificacao
 			boolean ehSegunda = DataUtils.verificarDiaSemana(retorno.getDataRetorno(), Calendar.MONDAY);
+
 			Assert.assertTrue(ehSegunda);
+
+			//verificação com mather personalizável
+
+			MatcherAssert.assertThat(retorno.getDataRetorno(), new DiaSemanaMatcher(Calendar.MONDAY));
+			MatcherAssert.assertThat(retorno.getDataRetorno(), MathersProprios.caiNumaSegunda());
 		}
 		
 
