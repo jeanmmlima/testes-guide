@@ -12,6 +12,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.never;
 
 import java.util.Arrays;
 import java.util.Calendar;
@@ -27,7 +28,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ErrorCollector;
 import org.junit.rules.ExpectedException;
+import org.mockito.Mockito;
 
+import com.jeanlima.testes.locadora.builders.LocacaoBuilder;
+import com.jeanlima.testes.locadora.dao.LocacaoDAO;
+import com.jeanlima.testes.locadora.dao.LocacaoDAOFake;
 import com.jeanlima.testes.locadora.entidades.Filme;
 import com.jeanlima.testes.locadora.entidades.Locacao;
 import com.jeanlima.testes.locadora.entidades.Usuario;
@@ -50,9 +55,37 @@ public class LocacaoServiceTest {
 		
 		private LocacaoService service;
 		
+		private SPCService spc;
+		private LocacaoDAO dao;
+		private EmailService email;
+		
 		@Before
 		public void setup() {
 			this.service = new LocacaoService();
+			//LocacaoDAO dao = new LocacaoDAOFake();
+			/*
+			 * Ao inves de instanciar e usar um objeto fake, uso o mock para MOCKAR a interface
+			 */
+			this.dao = Mockito.mock(LocacaoDAO.class); //response como se tivesse implementando a classe de origem
+			/*
+			 * Vai fazer o comportamento padrão de acordo com o retorno do método: void - nada, stirng: stirng vazia...
+			 */
+			service.setDao(dao);
+			
+			/*
+			 * o objeto mock se encaixa como o objeto esperado, mas ele não sabe o que fazer afinal não está implementado
+			 * o dev tem de "dizer" o que o mock deve responder a cada "pergunta/requisição" feita ao mesmo
+			 * para que na execução do teste ele se comporte exatamente como a classe real se comportaria
+			 */
+			
+			//teste para spc service
+			
+			this.spc = Mockito.mock(SPCService.class);
+			service.setSPCService(spc);
+			
+			//parte 4
+			email = Mockito.mock(EmailService.class);
+			service.setEmailService(email);
 		}
 		
 		
@@ -207,6 +240,121 @@ public class LocacaoServiceTest {
 			MatcherAssert.assertThat(retorno.getDataRetorno(), new DiaSemanaMatcher(Calendar.MONDAY));
 			MatcherAssert.assertThat(retorno.getDataRetorno(), MathersProprios.caiNumaSegunda());
 		}
+		/*
+		 * Primeiro o teste vai falhar mesmo com a dependencia do spcservice injetada
+		 * o retorno padrao do mock é false
+		 * mas a execção esperada só é lançada quando o método retorn verdadeiro
+		 */
+		@Test
+		public void naoDeveAlugarFilmeParaNegativadoSPC() throws FilmeSemEstoqueException, LocadoraException {
+			/* PARTE 1 2 e 3 
+			//cenario
+			Usuario usuario = umUsuario().agora();
+			//Usuario usuario2 = umUsuario().agora();
+			Usuario usuario2 = umUsuario().comNome("Usuario 2").agora();
+			List<Filme> filmes = Arrays.asList(umFilme().agora());
+			
+			//PARTE 2 - quando o mock spc chamar o método possuiNegativacao entao retorna true
+			Mockito.when(spc.possuiNegativacao(usuario)).thenReturn(true);
+			
+			exception.expect(LocadoraException.class);
+			exception.expectMessage("Usuário Negativado");
+			
+			//acao
+			//service.alugarFilme(usuario, filmes);
+			//expectativa com usuario 1 mas a execucao é com usuario 2 - verifica pelo nome, vai passar mesmo assim
+			//precisa mudar o nome para alterar
+			service.alugarFilme(usuario, filmes);
+			
+			//verificacao - parte 4
+			Mockito.verify(spc).possuiNegativacao(usuario);  */
+			
+			/* PARTE 4 - verificação. realmente precisa? */
+			
+			//cenario
+			Usuario usuario = umUsuario().agora();
+			//Usuario usuario2 = umUsuario().agora();
+			Usuario usuario2 = umUsuario().comNome("Usuario 2").agora();
+			List<Filme> filmes = Arrays.asList(umFilme().agora());
+			
+			//PARTE 2 - quando o mock spc chamar o método possuiNegativacao entao retorna true
+			//Mockito.when(spc.possuiNegativacao(usuario)).thenReturn(true);
+			
+			//parte 4 - com usuário genérico
+			Mockito.when(spc.possuiNegativacao(Mockito.any(Usuario.class))).thenReturn(true);
+			
+			
+			try {
+				service.alugarFilme(usuario, filmes);
+				Assert.fail();
+			} catch (LocadoraException e) {
+				// TODO: handle exception
+				MatcherAssert.assertThat(e.getMessage(), is("Usuário Negativado"));
+			}
+			
+			
+			//verificacao - parte 4
+			Mockito.verify(spc).possuiNegativacao(usuario);
+			
+			
+		}
+		
+		@Test
+		public void deveEnviarEmailParaLocacoesAtrasadas() {
+			//cenario
+			Usuario usuario = umUsuario().agora();
+			Usuario usuario2 = umUsuario().comNome("Usuário 2").agora();
+			List<Locacao> locacoes = Arrays.asList(LocacaoBuilder.umLocacao().comUsuario(usuario).comDataRetorno(DataUtils.obterDataComDiferencaDias(-2)).agora());
+			
+			Mockito.when(dao.obterLocacoesPendentes()).thenReturn(locacoes);
+			//acao
+			service.notificarAtrasos();
+			
+			//test
+			Mockito.verify(email).notificarAtraso(usuario);
+		}
+		
+		@Test
+		public void deveEnviarEmailParaLocacoesAtrasadas2() {
+			//cenario
+			Usuario usuario = umUsuario().agora();
+			Usuario usuario2 = umUsuario().comNome("Usuário Atrasado").agora();
+			
+			Usuario usuario3 = umUsuario().comNome("Usuário em dia").agora();
+			
+			List<Locacao> locacoes = Arrays.asList(
+					LocacaoBuilder
+						.umLocacao().atrasada().comUsuario(usuario).agora(),
+					LocacaoBuilder
+						.umLocacao().atrasada().comUsuario(usuario3).agora(),	
+					LocacaoBuilder
+						.umLocacao().atrasada().comUsuario(usuario3).agora(),	
+					LocacaoBuilder
+						.umLocacao().comUsuario(usuario2).agora());
+			
+			Mockito.when(dao.obterLocacoesPendentes()).thenReturn(locacoes);
+			//acao
+			service.notificarAtrasos();
+			
+			//test
+			//passa com usuário 2 tbm, mas está errado
+			Mockito.verify(email).notificarAtraso(usuario);
+			
+			//Mockito.verify(email, Mockito.times(2)).notificarAtraso(usuario3);
+			Mockito.verify(email, Mockito.atLeastOnce()).notificarAtraso(usuario3);
+			
+			//garantir que usuario 2 nao receba
+			Mockito.verify(email,never()).notificarAtraso(usuario2);
+			
+			//usuario generico
+			Mockito.verify(email,Mockito.times(3)).notificarAtraso(Mockito.any(Usuario.class));
+			
+			//voce decide o trabalho!
+			
+			Mockito.verifyNoMoreInteractions(email);
+			
+		}
+		
 		
 
 
