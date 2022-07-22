@@ -22,6 +22,7 @@ public class LocacaoService {
 	//
 	private LocacaoDAO dao;
 	private SPCService spcService;
+	private EmailService emailService;
 	
 	//FilmeSemEstoqueException, LocadoraException
 	//public Locacao alugarFilme(Usuario usuario, Filme filme) throws Exception {
@@ -94,6 +95,25 @@ public class LocacaoService {
 		
 		return locacao;
 	}
+	//### PARTE 3 //
+	public void notificarAtrasos() {
+		
+		//parte 3
+		/*
+		List<Locacao> locacoes = dao.obterLocacoesPendentes();
+		for(Locacao locacao : locacoes) {
+			emailService.notificarAtraso(locacao.getUsuario());
+		}*/
+		
+		//parte 4
+		List<Locacao> locacoes = dao.obterLocacoesPendentes();
+		for(Locacao locacao : locacoes) {
+			if(locacao.getDataRetorno().before(new Date())) {
+				emailService.notificarAtraso(locacao.getUsuario());
+			}
+			
+		}
+	}
 	
 	//injeção da dependencia da locação dao - agora posso instancia-lo e seta-lo no test!
 	public void setDao(LocacaoDAO dao) {
@@ -104,5 +124,8 @@ public class LocacaoService {
 		this.spcService = spc;
 	}
 	
+	public void setEmailService(EmailService email) {
+		this.emailService = email;
+	}
  
 }
