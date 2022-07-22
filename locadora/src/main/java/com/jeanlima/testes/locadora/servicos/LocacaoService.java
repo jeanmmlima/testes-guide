@@ -21,6 +21,7 @@ public class LocacaoService {
 	
 	//
 	private LocacaoDAO dao;
+	private SPCService spcService;
 	
 	//FilmeSemEstoqueException, LocadoraException
 	//public Locacao alugarFilme(Usuario usuario, Filme filme) throws Exception {
@@ -38,6 +39,10 @@ public class LocacaoService {
 			if(filme.getEstoque() == 0) {
 				throw new FilmeSemEstoqueException();
 			}
+		}
+		
+		if(spcService.possuiNegativacao(usuario)) {
+			throw new LocadoraException("Usuário Negativado");
 		}
 		
 		Locacao locacao = new Locacao();
@@ -93,6 +98,10 @@ public class LocacaoService {
 	//injeção da dependencia da locação dao - agora posso instancia-lo e seta-lo no test!
 	public void setDao(LocacaoDAO dao) {
 		this.dao = dao;
+	}
+	
+	public void setSPCService(SPCService spc) {
+		this.spcService = spc;
 	}
 	
  

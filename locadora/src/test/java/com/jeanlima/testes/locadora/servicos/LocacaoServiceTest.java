@@ -27,6 +27,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ErrorCollector;
 import org.junit.rules.ExpectedException;
+import org.mockito.Mockito;
 
 import com.jeanlima.testes.locadora.dao.LocacaoDAO;
 import com.jeanlima.testes.locadora.dao.LocacaoDAOFake;
@@ -52,11 +53,31 @@ public class LocacaoServiceTest {
 		
 		private LocacaoService service;
 		
+		private SPCService spc;
+		
 		@Before
 		public void setup() {
 			this.service = new LocacaoService();
-			LocacaoDAO dao = new LocacaoDAOFake();
+			//LocacaoDAO dao = new LocacaoDAOFake();
+			/*
+			 * Ao inves de instanciar e usar um objeto fake, uso o mock para MOCKAR a interface
+			 */
+			LocacaoDAO dao = Mockito.mock(LocacaoDAO.class); //response como se tivesse implementando a classe de origem
+			/*
+			 * Vai fazer o comportamento padrão de acordo com o retorno do método: void - nada, stirng: stirng vazia...
+			 */
 			service.setDao(dao);
+			
+			/*
+			 * o objeto mock se encaixa como o objeto esperado, mas ele não sabe o que fazer afinal não está implementado
+			 * o dev tem de "dizer" o que o mock deve responder a cada "pergunta/requisição" feita ao mesmo
+			 * para que na execução do teste ele se comporte exatamente como a classe real se comportaria
+			 */
+			
+			//teste para spc service
+			
+			this.spc = Mockito.mock(SPCService.class);
+			service.setSPCService(spc);
 		}
 		
 		
@@ -211,7 +232,32 @@ public class LocacaoServiceTest {
 			MatcherAssert.assertThat(retorno.getDataRetorno(), new DiaSemanaMatcher(Calendar.MONDAY));
 			MatcherAssert.assertThat(retorno.getDataRetorno(), MathersProprios.caiNumaSegunda());
 		}
-		
+		/*
+		 * Primeiro o teste vai falhar mesmo com a dependencia do spcservice injetada
+		 * o retorno padrao do mock é false
+		 * mas a execção esperada só é lançada quando o método retorn verdadeiro
+		 */
+		@Test
+		public void naoDeveAlugarFilmeParaNegativadoSPC() throws FilmeSemEstoqueException, LocadoraException {
+			//cenario
+			Usuario usuario = umUsuario().agora();
+			//Usuario usuario2 = umUsuario().agora();
+			Usuario usuario2 = umUsuario().comNome("Usuario 2").agora();
+			List<Filme> filmes = Arrays.asList(umFilme().agora());
+			
+			//PARTE 2 - quando o mock spc chamar o método possuiNegativacao entao retorna true
+			Mockito.when(spc.possuiNegativacao(usuario)).thenReturn(true);
+			
+			exception.expect(LocadoraException.class);
+			exception.expectMessage("Usuário Negativado");
+			
+			//acao
+			//service.alugarFilme(usuario, filmes);
+			//expectativa com usuario 1 mas a execucao é com usuario 2 - verifica pelo nome, vai passar mesmo assim
+			//precisa mudar o nome para alterar
+			service.alugarFilme(usuario2, filmes);
+			
+		}
 
 
 }
