@@ -28,6 +28,8 @@ import org.junit.Test;
 import org.junit.rules.ErrorCollector;
 import org.junit.rules.ExpectedException;
 
+import com.jeanlima.testes.locadora.dao.LocacaoDAO;
+import com.jeanlima.testes.locadora.dao.LocacaoDAOFake;
 import com.jeanlima.testes.locadora.entidades.Filme;
 import com.jeanlima.testes.locadora.entidades.Locacao;
 import com.jeanlima.testes.locadora.entidades.Usuario;
@@ -53,6 +55,8 @@ public class LocacaoServiceTest {
 		@Before
 		public void setup() {
 			this.service = new LocacaoService();
+			LocacaoDAO dao = new LocacaoDAOFake();
+			service.setDao(dao);
 		}
 		
 		

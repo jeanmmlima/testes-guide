@@ -15,6 +15,8 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;
 import org.junit.runners.Parameterized.Parameters;
 
+import com.jeanlima.testes.locadora.dao.LocacaoDAO;
+import com.jeanlima.testes.locadora.dao.LocacaoDAOFake;
 import com.jeanlima.testes.locadora.entidades.Filme;
 import com.jeanlima.testes.locadora.entidades.Locacao;
 import com.jeanlima.testes.locadora.entidades.Usuario;
@@ -48,6 +50,8 @@ public class CalculoValorLocacaoTest {
 	@Before
 	public void setup(){
 		service = new LocacaoService();
+		LocacaoDAO dao = new LocacaoDAOFake();
+		service.setDao(dao);
 	}
 
     /*

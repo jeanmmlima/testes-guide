@@ -7,6 +7,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+import com.jeanlima.testes.locadora.dao.LocacaoDAO;
 import com.jeanlima.testes.locadora.entidades.Filme;
 import com.jeanlima.testes.locadora.entidades.Locacao;
 import com.jeanlima.testes.locadora.entidades.Usuario;
@@ -17,6 +18,9 @@ import com.jeanlima.testes.locadora.utils.DataUtils;
 
 
 public class LocacaoService {
+	
+	//
+	private LocacaoDAO dao;
 	
 	//FilmeSemEstoqueException, LocadoraException
 	//public Locacao alugarFilme(Usuario usuario, Filme filme) throws Exception {
@@ -62,10 +66,33 @@ public class LocacaoService {
 		}
 		locacao.setDataRetorno(dataEntrega);
 		
+		
+		//### ENFIM IMPLEMENTANDO O SALVAR
 		//Salvando a locacao...	
 		//TODO adicionar método para salvar
 		
+		dao.salvar(locacao);
+		
+		//Testar logo apos adicionar o salvar - falha de ponteiro nullo, afinal método é da interface
+		
+		/*
+		 * 1a solução implementar a camada de DAO: deixa de ser teste unitário e passa a ser de interação
+		 * teste unitário não deve ter dependencia externa - acessar banco, serviço via rede
+		 * teste não fica isolad! problema de rede, falta da massa de dado.
+		 * teste unitário deve ser isolado para se falhar, já sabermos. 
+		 * fere o principio do FIRST - tudo deve estar "perfeito"
+		 * 
+		 * TDD. Quando precisar usar algum serviço que NÃO esteja implementado ou disponível USAMOS MOCKS!!!!
+		 * Mesmo que tivesse a camada de DAO, não deveriamos utilizá-la!!
+		 */
+		
+		
 		return locacao;
+	}
+	
+	//injeção da dependencia da locação dao - agora posso instancia-lo e seta-lo no test!
+	public void setDao(LocacaoDAO dao) {
+		this.dao = dao;
 	}
 	
  
