@@ -28,7 +28,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ErrorCollector;
 import org.junit.rules.ExpectedException;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 
 import com.jeanlima.testes.locadora.builders.LocacaoBuilder;
 import com.jeanlima.testes.locadora.dao.LocacaoDAO;
@@ -38,6 +42,7 @@ import com.jeanlima.testes.locadora.entidades.Locacao;
 import com.jeanlima.testes.locadora.entidades.Usuario;
 import com.jeanlima.testes.locadora.exceptions.FilmeSemEstoqueException;
 import com.jeanlima.testes.locadora.exceptions.LocadoraException;
+import com.jeanlima.testes.locadora.matchers.DataDiferencaDiasMatcher;
 import com.jeanlima.testes.locadora.matchers.DiaSemanaMatcher;
 import com.jeanlima.testes.locadora.matchers.MathersProprios;
 import com.jeanlima.testes.locadora.utils.DataUtils;
@@ -52,40 +57,28 @@ public class LocacaoServiceTest {
 		@Rule
 		public ExpectedException exception = ExpectedException.none();
 		
-		
+		//injeta o mock na classe de serviço
+		@InjectMocks
 		private LocacaoService service;
 		
+		@Mock
 		private SPCService spc;
+		
+		@Mock
 		private LocacaoDAO dao;
+		
+		@Mock
 		private EmailService email;
 		
 		@Before
 		public void setup() {
-			this.service = new LocacaoService();
-			//LocacaoDAO dao = new LocacaoDAOFake();
-			/*
-			 * Ao inves de instanciar e usar um objeto fake, uso o mock para MOCKAR a interface
-			 */
-			this.dao = Mockito.mock(LocacaoDAO.class); //response como se tivesse implementando a classe de origem
-			/*
-			 * Vai fazer o comportamento padrão de acordo com o retorno do método: void - nada, stirng: stirng vazia...
-			 */
-			service.setDao(dao);
+		
+			//init mocks is deprecated
+			MockitoAnnotations.openMocks(this);
 			
-			/*
-			 * o objeto mock se encaixa como o objeto esperado, mas ele não sabe o que fazer afinal não está implementado
-			 * o dev tem de "dizer" o que o mock deve responder a cada "pergunta/requisição" feita ao mesmo
-			 * para que na execução do teste ele se comporte exatamente como a classe real se comportaria
-			 */
-			
-			//teste para spc service
-			
-			this.spc = Mockito.mock(SPCService.class);
-			service.setSPCService(spc);
-			
-			//parte 4
-			email = Mockito.mock(EmailService.class);
-			service.setEmailService(email);
+			//tbm posso apagar os métodos sets da classe de serviço 
+			//que eram usados para injetar dependencias 
+		
 		}
 		
 		
@@ -246,30 +239,8 @@ public class LocacaoServiceTest {
 		 * mas a execção esperada só é lançada quando o método retorn verdadeiro
 		 */
 		@Test
-		public void naoDeveAlugarFilmeParaNegativadoSPC() throws FilmeSemEstoqueException, LocadoraException {
-			/* PARTE 1 2 e 3 
-			//cenario
-			Usuario usuario = umUsuario().agora();
-			//Usuario usuario2 = umUsuario().agora();
-			Usuario usuario2 = umUsuario().comNome("Usuario 2").agora();
-			List<Filme> filmes = Arrays.asList(umFilme().agora());
-			
-			//PARTE 2 - quando o mock spc chamar o método possuiNegativacao entao retorna true
-			Mockito.when(spc.possuiNegativacao(usuario)).thenReturn(true);
-			
-			exception.expect(LocadoraException.class);
-			exception.expectMessage("Usuário Negativado");
-			
-			//acao
-			//service.alugarFilme(usuario, filmes);
-			//expectativa com usuario 1 mas a execucao é com usuario 2 - verifica pelo nome, vai passar mesmo assim
-			//precisa mudar o nome para alterar
-			service.alugarFilme(usuario, filmes);
-			
-			//verificacao - parte 4
-			Mockito.verify(spc).possuiNegativacao(usuario);  */
-			
-			/* PARTE 4 - verificação. realmente precisa? */
+		public void naoDeveAlugarFilmeParaNegativadoSPC() throws Exception {
+			 
 			
 			//cenario
 			Usuario usuario = umUsuario().agora();
@@ -353,6 +324,47 @@ public class LocacaoServiceTest {
 			
 			Mockito.verifyNoMoreInteractions(email);
 			
+		}
+		
+		@Test
+		public void deveTratarErronoSPC() throws Exception {
+			//cenario
+			Usuario usuario = umUsuario().agora();
+			List<Filme> filmes = Arrays.asList(umFilme().agora());
+			
+			Mockito.when(spc.possuiNegativacao(usuario)).thenThrow(new Exception("Falha catastrófica"));
+			//Mockito.when(spc.possuiNegativacao(usuario)).thenThrow(new RuntimeException("Falha catastrófica"));
+			
+			exception.expect(LocadoraException.class);
+			//exception.expect(Exception.class);
+			exception.expectMessage("Problemas com SPC, tente novamente");
+			//exception.expectMessage("Falha catastrófica");
+			
+			//acao
+			service.alugarFilme(usuario, filmes);
+			
+			//verificação
+			
+		}
+		
+		@Test
+		public void deveProrrogarUmaLocacao(){
+			//cenario
+			Locacao locacao = LocacaoBuilder.umLocacao().agora();
+			
+			//acao
+			service.prorrogarLocacao(locacao, 3);
+			
+			//verificacao
+			//
+			
+			ArgumentCaptor<Locacao> argCapt = ArgumentCaptor.forClass(Locacao.class);
+			Mockito.verify(dao).salvar(argCapt.capture()); //pega o que foi passado no método dao
+			Locacao locacaoRetornada = argCapt.getValue();
+			
+			error.checkThat(locacaoRetornada.getValor(), is(12.0));
+			error.checkThat(locacaoRetornada.getDataLocacao(), MathersProprios.ehHoje());
+			error.checkThat(locacaoRetornada.getDataRetorno(), MathersProprios.ehHojeComDiferencaDias(3));
 		}
 		
 		

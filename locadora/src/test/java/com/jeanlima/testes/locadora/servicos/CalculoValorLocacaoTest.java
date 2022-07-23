@@ -14,7 +14,10 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;
 import org.junit.runners.Parameterized.Parameters;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 
 import com.jeanlima.testes.locadora.dao.LocacaoDAO;
 import com.jeanlima.testes.locadora.dao.LocacaoDAOFake;
@@ -33,8 +36,14 @@ public class CalculoValorLocacaoTest {
      */
 
     //instancia do servico
-
+	@InjectMocks
     private LocacaoService service;
+	
+	@Mock
+	LocacaoDAO dao;
+	
+	@Mock
+	SPCService spc;
 
     //Parametros do conjunto de dados que será testado
 	
@@ -50,11 +59,10 @@ public class CalculoValorLocacaoTest {
     //instancia do servico
 	@Before
 	public void setup(){
-		service = new LocacaoService();
-		LocacaoDAO dao = new LocacaoDAOFake();
-		service.setDao(dao);
-		SPCService spc = Mockito.mock(SPCService.class);
-		service.setSPCService(spc);
+		
+		//
+		MockitoAnnotations.openMocks(this);
+		
 	}
 
     /*
